@@ -1,0 +1,9 @@
+---
+interface Props { still: string; masterExtension: string; alt: string; class?: string; }
+const { still, masterExtension, alt, class: className } = Astro.props;
+---
+<picture class={className}>
+  <source srcset={`/assets/works/${still}.avif`} type="image/avif" />
+  <source srcset={`/assets/works/${still}.webp`} type="image/webp" />
+  <img src={`/assets/works/${still}.${masterExtension}`} alt={alt} decoding="async" />
+</picture>

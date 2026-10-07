@@ -1,0 +1,99 @@
+---
+import { currentState, practical, works } from '../lib/current-state.mjs';
+import WorkImage from '../components/WorkImage.astro';
+import '../styles/surface.css';
+const entries = ['reconstruction', 'tiny', 'chasse'].map((id) => works.find((work) => work.id === id)!);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="High Mountains Archive is an affective and situated research developed by Olivia Joret." />
+    <meta name="theme-color" content="#f5ced9" />
+    <title>HMA | High Mountains Archive</title>
+    <link rel="preload" href="/fonts/NimbusSans-Bold.otf" as="font" type="font/otf" crossorigin />
+  </head>
+  <body x-data="hmaSurface" x-on:keydown.escape.window="closeState()" x-on:keydown.window="trapFocus($event)" x-on:pointerdown="restActivity()" x-on:keydown="restActivity()">
+    <main class="surface" x-bind:class="{ 'has-information': state, 'has-fragment': mobile && encounter }">
+      <div class="landing-layer" x-bind:inert="state !== null">
+        <picture class="landing-media" x-bind:style="{ '--desktop-position': crop.desktopPosition, '--mobile-position': crop.mobilePosition }">
+          <source type="image/avif" srcset="/assets/landing/hma-04.avif" x-bind:srcset="'/assets/landing/' + crop.id + '.avif'" />
+          <source type="image/webp" srcset="/assets/landing/hma-04.webp" x-bind:srcset="'/assets/landing/' + crop.id + '.webp'" />
+          <img src="/assets/landing/hma-04.png" x-bind:src="'/assets/landing/' + crop.id + '.png'" alt="Authored crop of a bunker volume reconstruction in the Ardennes." fetchpriority="high" />
+        </picture>
+        <h1 class="hma-object"><button class="hma-entry" x-ref="hma" x-on:click="openState('hma')" aria-label="HMA, High Mountains Archive information" aria-controls="information" x-bind:aria-expanded="state === 'hma'">HMA</button></h1>
+        <div class="current-caption">
+          <p class="temporal-index">ARDENNES &mdash; <span x-text="counter">00381.627</span></p>
+          <p class="current-sentence">{currentState.sentence}</p>
+        </div>
+      </div>
+
+      <div class="veil" aria-hidden="true" x-bind:class="{ 'information-veil': state, 'work-veil': state && state !== 'hma', 'fragment-veil': mobile && encounter && !state }"></div>
+
+      <div class="encounters" x-bind:inert="state !== null">
+        {works.map((work) => (
+          <button class={`encounter encounter-${work.id}`} aria-label={`${work.entry} information`} aria-controls="information"
+            x-show={`!mobile || encounter === '${work.id}'`} x-bind:class={`{ 'is-active': encounter === '${work.id}' }`}
+            x-on:mouseenter={`if (!mobile) showEncounter('${work.id}')`} x-on:mouseleave={`leaveEncounter('${work.id}')`}
+            x-on:focus={`if (!mobile) showEncounter('${work.id}')`} x-on:blur={`leaveEncounter('${work.id}')`}
+            x-on:click={`openState('${work.id}')`}>
+            <span class="encounter-frame" x-cloak x-show={`encounter === '${work.id}'`}>
+              <WorkImage {...work} />
+              {work.excerpt && <video src={work.excerpt} data-work={work.id} poster={`/assets/works/${work.still}.webp`} playsinline loop preload="none" x-show="!reducedMotion" aria-hidden="true"></video>}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <section id="information" class="information" x-ref="information" x-cloak x-show="state" role="dialog" aria-modal="true"
+        x-bind:aria-labelledby="state === 'hma' ? 'hma-title' : state + '-title'">
+        <button class="close-state" x-ref="close" x-on:click="closeState()" aria-label="Close">&times;</button>
+        <article class="hma-information" x-show="state === 'hma'">
+          <div class="hma-research">
+            <h2 id="hma-title">HIGH MOUNTAINS<br />ARCHIVE</h2>
+            <div class="research-copy">
+              <p>High Mountains Archive is an affective and situated research developed by Olivia Joret.</p>
+              <p>It began with Hoge Bergen &mdash; &ldquo;High Mountains&rdquo; &mdash; a site and neighbourhood in Belgium with a long history of extraction and non-ferrous industry. The former industrial site is now a nature park. There are no mountains, but deep clay pits.</p>
+              <p>Its mountains are entangled with excavation, accumulation, material transformation, living processes and structures of power.</p>
+              <p>The archive has since developed through partial encounters with materials, traces, histories and transformations, across different places and temporalities.</p>
+            </div>
+          </div>
+          <div class="mobile-current">
+            <p class="temporal-index">ARDENNES &mdash; <span x-text="counter">00381.627</span></p>
+            <p class="current-sentence">{currentState.sentence}</p>
+          </div>
+          <div class="work-entries">
+            {entries.map((work) => <button x-on:click={`openState('${work.id}')`}>{work.entry} &rarr;</button>)}
+          </div>
+          <div class="practical-copy">
+            <p>Olivia Joret works in Belgium, between a shared workspace with the Level Five collective in Brussels and a studio in the Ardennes.</p>
+            <a href={practical.portfolio} download>PORTFOLIO 2026 &darr;</a>
+            {practical.email && <a href={`mailto:${practical.email}`}>{practical.email}</a>}
+          </div>
+        </article>
+
+        {works.map((work) => (
+          <article class={`work-information work-${work.id}`} x-show={`state === '${work.id}'`}>
+            <header class="work-heading">
+              <p class="archive-index">HIGH MOUNTAINS ARCHIVE #4</p>
+              <h2 id={`${work.id}-title`}>{work.titleLines.map((line, index) => <>{index > 0 && <br />}{line}</>)}</h2>
+              <div class="work-metadata">
+                {'subtitle' in work && <p>{work.subtitle}</p>}
+                <p>{work.metadata}</p>
+              </div>
+            </header>
+            <WorkImage {...work} class="work-image" />
+            <div class="work-copy">
+              <p>{work.description}</p>
+              {'context' in work && <p class="work-context">{work.context}</p>}
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+    <script>
+      import '../scripts/surface.js';
+    </script>
+  </body>
+</html>
