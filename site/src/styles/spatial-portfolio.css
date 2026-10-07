@@ -1,0 +1,60 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.portfolio-viewer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #f5ced9;
+}
+
+.portfolio-world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.portfolio-world.is-dragging { cursor: grabbing; }
+
+.portfolio-content {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.portfolio-native-world {
+  position: absolute;
+  display: block;
+  max-width: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.portfolio-exit {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 20px;
+  padding: 9px 11px;
+  background: #f5ced9;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.portfolio-exit:focus-visible,
+.portfolio-world:focus-visible { outline: 2px solid #000; outline-offset: -4px; }
+
+@media (max-width: 767px) {
+  .portfolio-exit { top: 12px; left: 12px; }
+}
