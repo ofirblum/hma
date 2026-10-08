@@ -1,11 +1,3 @@
-@font-face {
-  font-family: 'Nimbus Sans';
-  src: url('/fonts/NimbusSans-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   font-family: 'Nimbus Sans', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 700;

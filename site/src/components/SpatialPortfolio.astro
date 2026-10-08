@@ -3,7 +3,7 @@ import '../styles/surface.css';
 import '../styles/spatial-portfolio.css';
 ---
 <main class="portfolio-viewer" data-portfolio-viewer>
-  <a class="portfolio-exit" href="/" aria-label="Return to High Mountains Archive">&larr; HMA</a>
+  <a class="portfolio-exit" href={import.meta.env.BASE_URL} aria-label="Return to High Mountains Archive">&larr; HMA</a>
   <div class="portfolio-world" data-portfolio-world role="region" tabindex="0"
     aria-label="Spatial portfolio. Drag to explore. Use arrow keys to pan and plus or minus to zoom.">
     <div class="portfolio-content" data-portfolio-content aria-hidden="true"></div>

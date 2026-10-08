@@ -7,7 +7,8 @@ import {
 } from '../lib/spatial-camera.mjs';
 import { selectCameraEntry } from '../lib/spatial-world.mjs';
 
-const FULL_BACKGROUND_SOURCE = '/assets/works/volume-reconstruction.jpg';
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+const FULL_BACKGROUND_SOURCE = `${BASE}/assets/works/volume-reconstruction.jpg`;
 const PENPOT_BACKGROUND_CROP = { x: 3083.96, y: 2113.64, width: 1333.328, height: 834.328 };
 const WHEEL_ZOOM_STEP = 1.12;
 const WHEEL_ZOOM_STEP_DELTA = Math.log(WHEEL_ZOOM_STEP);
@@ -251,7 +252,7 @@ if (viewer && surface && content) {
       event.preventDefault();
       zoomAt({ x: viewport.width / 2, y: viewport.height / 2 }, 1 / 1.2);
     } else if (event.key === 'Escape') {
-      window.location.assign('/');
+      window.location.assign(import.meta.env.BASE_URL);
     }
   }
 
@@ -276,10 +277,10 @@ if (viewer && surface && content) {
 
   async function initialize() {
     const [svgResponse, worldResponse, assetResponse, overviewResponse] = await Promise.all([
-      fetch('/assets/portfolio/Board.svg'),
-      fetch('/assets/portfolio/penpot-world.json'),
-      fetch('/assets/portfolio/asset-index.json'),
-      fetch('/assets/portfolio/native-overview.json'),
+      fetch(`${BASE}/assets/portfolio/Board.svg`),
+      fetch(`${BASE}/assets/portfolio/penpot-world.json`),
+      fetch(`${BASE}/assets/portfolio/asset-index.json`),
+      fetch(`${BASE}/assets/portfolio/native-overview.json`),
     ]);
     if (!svgResponse.ok || !worldResponse.ok || !assetResponse.ok || !overviewResponse.ok) {
       throw new Error('The native portfolio source files could not be loaded.');
@@ -317,9 +318,9 @@ if (viewer && surface && content) {
       const asset = mediaById.get(mediaId);
       if (!asset) throw new Error(`No extracted Penpot media matches ${mediaId}.`);
       const filename = asset.extracted_file.split('/').pop();
-      const localHref = `/assets/portfolio/native/${encodeURIComponent(filename)}`;
+      const localHref = `${BASE}/assets/portfolio/native/${encodeURIComponent(filename)}`;
       const overview = overviews[filename];
-      const servedHref = overview ? `/assets/portfolio/native-overview/${encodeURIComponent(filename)}` : localHref;
+      const servedHref = overview ? `${BASE}/assets/portfolio/native-overview/${encodeURIComponent(filename)}` : localHref;
       image.setAttribute('href', servedHref);
       image.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
       if (overview) {

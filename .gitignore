@@ -3,3 +3,5 @@ Thumbs.db
 
 # Design reference screenshots and the superseded PNG prototype; not read by the build or tests.
 references_/
+# The portfolio PDF is no longer published.
+Assets/documents_/
