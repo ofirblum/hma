@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { cameraEntryPoints, selectCameraEntry } from '../src/lib/spatial-world.mjs';
 import {
   cameraViewBox,
   cameraLimits,
@@ -14,28 +15,49 @@ import {
 const world = { width: 5000, height: 3500 };
 const viewport = { width: 1440, height: 900 };
 const samePosition = (actual, expected) => Math.abs(actual - expected) < 1e-8;
+const center = { x: world.width / 2, y: world.height / 2 };
 
-test('the camera opens on a partial, varied frame and cannot fit the whole world', () => {
-  const camera = createSpatialCamera(world, viewport, () => 0.5);
+test('the camera opens at its authored crop and remains inside the finite A1', () => {
+  const camera = createSpatialCamera(world, viewport, center);
   const limits = cameraLimits(world, viewport);
   assert.ok(camera.scale >= limits.min);
   assert.ok(camera.scale <= limits.max);
+  assert.ok(Math.abs(viewport.width / camera.scale / world.width - 0.3) < 1e-8);
   assert.ok(viewport.width / camera.scale <= world.width * 0.75);
-  assert.ok(viewport.height / camera.scale <= world.height * 0.75);
-  assert.ok(camera.x >= 0 && camera.x < world.width);
-  assert.ok(camera.y >= 0 && camera.y < world.height);
+  assert.ok(viewport.height / camera.scale <= world.height);
+  assert.ok(camera.x >= 0 && camera.x <= world.width - viewport.width / camera.scale);
+  assert.ok(camera.y >= 0 && camera.y <= world.height - viewport.height / camera.scale);
 });
 
-test('panning continues beyond board bounds without clamping or changing zoom', () => {
-  const camera = { x: 20, y: 3400, scale: 1 };
-  panCamera(camera, -80, 250);
-  assert.equal(camera.x, -60);
-  assert.equal(camera.y, 3650);
+test('authored fresh-entry choices share one scale and stay in distinct A1 territories', () => {
+  const a1 = { width: 3179, height: 2245 };
+  assert.equal(cameraEntryPoints.length, 8);
+  assert.equal(new Set(cameraEntryPoints.map((entry) => entry.id)).size, cameraEntryPoints.length);
+  assert.equal(selectCameraEntry(() => 0), cameraEntryPoints[0]);
+  assert.equal(selectCameraEntry(() => 0.999), cameraEntryPoints.at(-1));
+  const cameras = cameraEntryPoints.map((entry) => createSpatialCamera(a1, viewport, entry));
+  assert.equal(new Set(cameras.map((camera) => camera.scale)).size, 1);
+  assert.ok(cameras.every((camera) => camera.x >= 0 && camera.y >= 0));
+  assert.ok(new Set(cameras.map((camera) => `${Math.round(camera.x)},${Math.round(camera.y)}`)).size >= 6);
+});
+
+test('panning stops firmly at all four A1 edges without changing zoom', () => {
+  const boundedWorld = { width: 5000, height: 3500 };
+  const boundedViewport = { width: 1000, height: 800 };
+  const camera = { x: 20, y: 2500, scale: 1 };
+  const leftTop = panCamera(camera, boundedWorld, boundedViewport, -1000, -3000);
+  assert.equal(camera.x, 0);
+  assert.equal(camera.y, 0);
+  assert.equal(leftTop.x, -20);
+  assert.equal(leftTop.y, -2500);
+  panCamera(camera, boundedWorld, boundedViewport, 10000, 10000);
+  assert.equal(camera.x, 4000);
+  assert.equal(camera.y, 2700);
   assert.equal(camera.scale, 1);
 });
 
 test('zoom remains anchored to the pointer and respects the no-fit lower bound', () => {
-  const camera = createSpatialCamera(world, viewport, () => 0.5);
+  const camera = createSpatialCamera(world, viewport, center);
   const point = { x: 430, y: 300 };
   const anchorX = camera.x + point.x / camera.scale;
   const anchorY = camera.y + point.y / camera.scale;
@@ -51,7 +73,7 @@ test('zoom remains anchored to the pointer and respects the no-fit lower bound',
 });
 
 test('native SVG viewBox exposes increasing source detail as the camera zooms', () => {
-  const camera = createSpatialCamera(world, viewport, () => 0.5);
+  const camera = createSpatialCamera(world, viewport, center);
   const initial = cameraViewBox(camera, viewport);
   zoomCamera(camera, world, viewport, { x: 720, y: 450 }, camera.scale * 4);
   const zoomed = cameraViewBox(camera, viewport);
@@ -62,7 +84,7 @@ test('native SVG viewBox exposes increasing source detail as the camera zooms', 
 });
 
 test('resizing preserves the world center and current zoom when allowed', () => {
-  const camera = createSpatialCamera(world, viewport, () => 0.5);
+  const camera = createSpatialCamera(world, viewport, center);
   const centerX = camera.x + viewport.width / (2 * camera.scale);
   const centerY = camera.y + viewport.height / (2 * camera.scale);
   const nextViewport = { width: 1280, height: 800 };
@@ -71,22 +93,24 @@ test('resizing preserves the world center and current zoom when allowed', () => 
   assert.ok(samePosition(camera.y + nextViewport.height / (2 * camera.scale), centerY));
 });
 
-test('the minimum zoom remains above the full-world fit scale', () => {
+test('minimum zoom uses cover bounds and reveals the complete A1 on a matching aspect ratio', () => {
   for (const size of [viewport, { width: 390, height: 844 }]) {
     const limits = cameraLimits(world, size);
-    assert.ok(size.width / limits.min <= world.width * 0.75);
-    assert.ok(size.height / limits.min <= world.height * 0.75);
+    const visibleWidth = size.width / limits.min;
+    const visibleHeight = size.height / limits.min;
+    assert.ok(visibleWidth <= world.width);
+    assert.ok(visibleHeight <= world.height);
+    assert.ok(Math.abs(visibleWidth - world.width) < 1e-8 || Math.abs(visibleHeight - world.height) < 1e-8);
   }
 });
 
-test('resizing to portrait enforces the partial-view scale without resetting position', () => {
+test('resizing to portrait enforces cover bounds without resetting the A1 center', () => {
   const camera = { x: 1200, y: 900, scale: 0.2 };
   const portrait = { width: 390, height: 844 };
   resizeCamera(camera, world, viewport, portrait);
   assert.ok(camera.scale >= cameraLimits(world, portrait).min);
-  assert.ok(portrait.width / camera.scale <= world.width * 0.75);
-  assert.ok(portrait.height / camera.scale <= world.height * 0.75);
-  assert.notEqual(camera.x, 0);
+  assert.ok(camera.x >= 0 && camera.x <= world.width - portrait.width / camera.scale);
+  assert.ok(camera.y >= 0 && camera.y <= world.height - portrait.height / camera.scale);
 });
 
 test('the native Penpot world and all extracted media are published unchanged', async () => {

@@ -1,32 +1,44 @@
-const START_VISIBLE_WIDTH = 0.34;
-const MAXIMUM_VISIBLE_FRACTION = 0.75;
+const START_VISIBLE_WIDTH = 0.3;
+const START_VISIBLE_HEIGHT = 0.7;
 const MAXIMUM_SCALE = 48;
 
 export function cameraLimits(world, viewport) {
   return {
-    min: Math.max(
-      viewport.width / (world.width * MAXIMUM_VISIBLE_FRACTION),
-      viewport.height / (world.height * MAXIMUM_VISIBLE_FRACTION),
-    ),
+    min: Math.max(viewport.width / world.width, viewport.height / world.height),
     max: MAXIMUM_SCALE,
   };
 }
 
-export function createSpatialCamera(world, viewport, random = Math.random) {
-  const limits = cameraLimits(world, viewport);
-  const scale = Math.min(limits.max, Math.max(limits.min, viewport.width / (world.width * START_VISIBLE_WIDTH)));
-  const centerX = world.width * (0.18 + random() * 0.64);
-  const centerY = world.height * (0.18 + random() * 0.64);
-  return {
-    x: centerX - viewport.width / (2 * scale),
-    y: centerY - viewport.height / (2 * scale),
-    scale,
-  };
+function clampCamera(camera, world, viewport) {
+  const visibleWidth = viewport.width / camera.scale;
+  const visibleHeight = viewport.height / camera.scale;
+  camera.x = Math.min(Math.max(camera.x, 0), Math.max(0, world.width - visibleWidth));
+  camera.y = Math.min(Math.max(camera.y, 0), Math.max(0, world.height - visibleHeight));
 }
 
-export function panCamera(camera, deltaWorldX, deltaWorldY) {
+export function createSpatialCamera(world, viewport, entryPoint = { x: world.width / 2, y: world.height / 2 }) {
+  const limits = cameraLimits(world, viewport);
+  const scale = Math.min(limits.max, Math.max(
+    limits.min,
+    viewport.width / (world.width * START_VISIBLE_WIDTH),
+    viewport.height / (world.height * START_VISIBLE_HEIGHT),
+  ));
+  const camera = {
+    x: entryPoint.x - viewport.width / (2 * scale),
+    y: entryPoint.y - viewport.height / (2 * scale),
+    scale,
+  };
+  clampCamera(camera, world, viewport);
+  return camera;
+}
+
+export function panCamera(camera, world, viewport, deltaWorldX, deltaWorldY) {
+  const previousX = camera.x;
+  const previousY = camera.y;
   camera.x += deltaWorldX;
   camera.y += deltaWorldY;
+  clampCamera(camera, world, viewport);
+  return { x: camera.x - previousX, y: camera.y - previousY };
 }
 
 export function cameraViewBox(camera, viewport) {
@@ -46,6 +58,7 @@ export function zoomCamera(camera, world, viewport, point, scale) {
   camera.x = worldX - point.x / nextScale;
   camera.y = worldY - point.y / nextScale;
   camera.scale = nextScale;
+  clampCamera(camera, world, viewport);
 }
 
 export function resizeCamera(camera, world, previousViewport, nextViewport) {
@@ -55,4 +68,5 @@ export function resizeCamera(camera, world, previousViewport, nextViewport) {
   camera.scale = Math.max(limits.min, Math.min(limits.max, camera.scale));
   camera.x = centerX - nextViewport.width / (2 * camera.scale);
   camera.y = centerY - nextViewport.height / (2 * camera.scale);
+  clampCamera(camera, world, nextViewport);
 }
