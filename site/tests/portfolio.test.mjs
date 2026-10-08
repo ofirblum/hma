@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 import { cameraEntryPoints, selectCameraEntry } from '../src/lib/spatial-world.mjs';
 import {
   cameraViewBox,
@@ -151,4 +153,14 @@ test('the native Penpot world and all extracted media are published unchanged', 
     const served = await readFile(new URL(`../public/assets/portfolio/native/${filename}`, import.meta.url));
     assert.equal(digest(served), digest(original), `${filename}: unchanged Penpot media`);
   }
+});
+
+test('the A1 background crop covers the whole board at the registered scale without resampling', async () => {
+  const portfolio = new URL('../public/assets/portfolio/', import.meta.url);
+  const placement = JSON.parse(await readFile(new URL('background-a1.json', portfolio), 'utf8'));
+  const crop = await sharp(fileURLToPath(new URL('background-a1.webp', portfolio))).metadata();
+  assert.ok(placement.x <= 0 && placement.y <= 0);
+  assert.ok(placement.x + placement.width >= 3179 && placement.y + placement.height >= 2245);
+  assert.ok(Math.abs(placement.width / crop.width - placement.height / crop.height) < 1e-9);
+  assert.ok(crop.width < 1000 && crop.height < 1000);
 });
