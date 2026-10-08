@@ -11,8 +11,7 @@ export const currentState = {
 };
 
 export const practical = {
-  email: '',
-  portfolio: '/assets/documents/Olivia_Joret_Portfolio_2026.pdf',
+  email: 'olivia.joret@egs.edu',
 };
 
 export const works = [

@@ -33,8 +33,7 @@ for (const work of works) {
   console.log(`Copied authored excerpt works/${filename} unchanged`);
 }
 
-await mkdir(path.join(output, 'documents'), { recursive: true });
-await copyFile(path.join(source, 'documents_/Olivia_Joret_Portfolio_2026.pdf'), path.join(output, 'documents/Olivia_Joret_Portfolio_2026.pdf'));
+await rm(path.join(output, 'documents'), { recursive: true, force: true });
 const reconstruction = path.resolve(root, '../HMA_reconstruction_handoff');
 const portfolio = path.join(output, 'portfolio');
 const nativeAssets = path.join(portfolio, 'native');
