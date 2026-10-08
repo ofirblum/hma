@@ -70,6 +70,32 @@ const nativeWorld = {
   objects: objectsById,
 };
 await writeFile(path.join(portfolio, 'penpot-world.json'), JSON.stringify(nativeWorld));
+
+// Registration of the full photograph to the Penpot background crop (source pixels).
+const PENPOT_BACKGROUND_CROP = { x: 3083.96, y: 2113.64, width: 1333.328, height: 834.328 };
+const backgroundSource = path.join(source, 'works_/volume-reconstruction.jpg');
+const backgroundMetadata = await sharp(backgroundSource).metadata();
+const backgroundSize = backgroundMetadata.autoOrient ?? backgroundMetadata;
+const frame = { x: background.x - board.x, y: background.y - board.y, width: background.width, height: background.height };
+const registrationScale = (PENPOT_BACKGROUND_CROP.width * frame.width + PENPOT_BACKGROUND_CROP.height * frame.height)
+  / (PENPOT_BACKGROUND_CROP.width ** 2 + PENPOT_BACKGROUND_CROP.height ** 2);
+const imageX = frame.x - PENPOT_BACKGROUND_CROP.x * registrationScale;
+const imageY = frame.y - PENPOT_BACKGROUND_CROP.y * registrationScale;
+// Only the source pixels A1 can show (plus a one-pixel sampling margin), unresampled.
+const crop = {
+  left: Math.max(0, Math.floor(-imageX / registrationScale) - 1),
+  top: Math.max(0, Math.floor(-imageY / registrationScale) - 1),
+};
+crop.width = Math.min(backgroundSize.width, Math.ceil((board.width - imageX) / registrationScale) + 1) - crop.left;
+crop.height = Math.min(backgroundSize.height, Math.ceil((board.height - imageY) / registrationScale) + 1) - crop.top;
+await sharp(backgroundSource).rotate().extract(crop).webp({ lossless: true }).toFile(path.join(portfolio, 'background-a1.webp'));
+await writeFile(path.join(portfolio, 'background-a1.json'), JSON.stringify({
+  x: imageX + crop.left * registrationScale,
+  y: imageY + crop.top * registrationScale,
+  width: crop.width * registrationScale,
+  height: crop.height * registrationScale,
+  opacity: background.fills.find((fill) => fill.fillImage)?.fillOpacity ?? 1,
+}));
 const boardSvg = await readFile(path.join(reconstruction, 'source/Board.svg'), 'utf8');
 const displaySizes = new Map();
 for (const [tag] of boardSvg.matchAll(/<image\b[^>]*>/g)) {
@@ -96,10 +122,11 @@ for (const asset of media) {
   if (factor >= 0.75) continue;
   const overviewWidth = Math.max(1, Math.round(width * factor));
   const overviewHeight = Math.max(1, Math.round(height * factor));
-  const pipeline = sharp(original).rotate().resize(overviewWidth, overviewHeight, { fit: 'fill' });
-  if (/\.jpe?g$/i.test(filename)) pipeline.jpeg({ quality: 90 });
-  await pipeline.toFile(path.join(overviewAssets, filename));
-  overviews[filename] = { width: overviewWidth, height: overviewHeight };
+  const overviewFile = `${path.parse(filename).name}.webp`;
+  await sharp(original).rotate().resize(overviewWidth, overviewHeight, { fit: 'fill' })
+    .webp({ quality: 90, alphaQuality: 100, effort: 5 })
+    .toFile(path.join(overviewAssets, overviewFile));
+  overviews[filename] = { file: overviewFile, width: overviewWidth, height: overviewHeight };
 }
 await writeFile(path.join(portfolio, 'native-overview.json'), JSON.stringify(overviews));
 await Promise.all([

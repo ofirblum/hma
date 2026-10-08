@@ -33,6 +33,8 @@ body {
   pointer-events: none;
 }
 
+.portfolio-content.is-loading { visibility: hidden; }
+
 .portfolio-native-world {
   position: absolute;
   display: block;
