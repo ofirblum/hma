@@ -1,2 +1,5 @@
 .DS_Store
 Thumbs.db
+
+# Design reference screenshots and the superseded PNG prototype; not read by the build or tests.
+references_/
