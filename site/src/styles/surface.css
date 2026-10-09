@@ -25,6 +25,15 @@ h1, h2 { font-weight: 700; }
 .landing-media img { width: 100%; height: 100%; object-fit: cover; object-position: var(--desktop-position, 50% 50%); }
 .hma-object { position: absolute; left: 50%; top: 28%; transform: translateX(-50%); font-size: 240px; line-height: 0.8; }
 .hma-entry { display: block; padding: 16px 24px; margin: -16px -24px; line-height: inherit; }
+
+@media (hover: hover) and (pointer: fine) {
+  [data-hma-hover='on'] .hma-entry { transition: filter 180ms ease-out; }
+  [data-hma-hover='on'] .hma-entry:hover { filter: contrast(0.80); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hma-hover='on'] .hma-entry { transition: none; }
+}
 .current-caption { position: absolute; top: 60%; left: var(--side); right: var(--side); }
 .temporal-index { font-size: 16px; line-height: 1; white-space: nowrap; }
 .temporal-index span { font-variant-numeric: tabular-nums; }

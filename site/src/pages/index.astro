@@ -2,6 +2,7 @@
 import { currentState, practical, works } from '../lib/current-state.mjs';
 import WorkImage from '../components/WorkImage.astro';
 import NimbusFont from '../components/NimbusFont.astro';
+import SiteMetadata from '../components/SiteMetadata.astro';
 import '../styles/surface.css';
 const entries = ['reconstruction', 'tiny', 'chasse'].map((id) => works.find((work) => work.id === id)!);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -11,9 +12,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="High Mountains Archive is an affective and situated research developed by Olivia Joret." />
     <meta name="theme-color" content="#f5ced9" />
-    <title>HMA | High Mountains Archive</title>
+    <SiteMetadata title="Olivia Joret | High Mountains Archive"
+      description="High Mountains Archive is an affective and situated research developed by Olivia Joret, working in Belgium between Brussels and the Ardennes." />
     <NimbusFont />
   </head>
   <body x-data="hmaSurface" x-on:keydown.escape.window="closeState()" x-on:keydown.window="trapFocus($event)" x-on:pointerdown="restActivity()" x-on:keydown="restActivity()">

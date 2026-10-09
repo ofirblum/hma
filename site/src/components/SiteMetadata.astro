@@ -1,0 +1,50 @@
+---
+interface Props { title: string; description: string; }
+const { title, description } = Astro.props;
+const siteUrl = new URL(import.meta.env.BASE_URL, Astro.site!);
+const canonical = new URL(Astro.url.pathname, siteUrl);
+const personId = new URL('#olivia-joret', siteUrl).href;
+const websiteId = new URL('#website', siteUrl).href;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': personId,
+      name: 'Olivia Joret',
+      url: siteUrl.href,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': websiteId,
+      url: siteUrl.href,
+      name: 'High Mountains Archive',
+      creator: { '@id': personId },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'WebPage',
+      '@id': `${canonical.href}#webpage`,
+      url: canonical.href,
+      name: title,
+      description,
+      isPartOf: { '@id': websiteId },
+      author: { '@id': personId },
+      inLanguage: 'en',
+    },
+  ],
+};
+---
+<title>{title}</title>
+<meta name="description" content={description} />
+<meta name="author" content="Olivia Joret" />
+<link rel="canonical" href={canonical.href} />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="High Mountains Archive" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical.href} />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
