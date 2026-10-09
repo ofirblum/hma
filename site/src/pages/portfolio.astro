@@ -1,6 +1,7 @@
 ---
 import SpatialPortfolio from '../components/SpatialPortfolio.astro';
 import NimbusFont from '../components/NimbusFont.astro';
+import SiteMetadata from '../components/SiteMetadata.astro';
 ---
 <!doctype html>
 <html lang="en">
@@ -9,7 +10,8 @@ import NimbusFont from '../components/NimbusFont.astro';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f5ced9" />
     <link rel="preload" href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/assets/portfolio/Board.svg`} as="fetch" crossorigin />
-    <title>Portfolio | High Mountains Archive</title>
+    <SiteMetadata title="Olivia Joret | Portfolio | High Mountains Archive"
+      description="Explore Olivia Joret's High Mountains Archive portfolio: works, material studies and research across Belgium and the Ardennes." />
     <NimbusFont />
   </head>
   <body>

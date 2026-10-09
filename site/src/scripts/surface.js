@@ -22,6 +22,7 @@ Alpine.data('hmaSurface', () => ({
   lastEncounter: null,
 
   init() {
+    this.$root.dataset.hmaHover = new URLSearchParams(window.location.search).get('hmaHover') === 'on' ? 'on' : 'off';
     let storage;
     try { storage = window.sessionStorage; } catch {}
     this.crop = selectCrop(storage);
