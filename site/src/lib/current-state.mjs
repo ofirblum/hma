@@ -26,7 +26,7 @@ export const works = [
     metadata: 'Film, ~2 min, 2026',
     description: 'Tiny Infiltration follows the sound of water entering a hollowed-out high-security storage complex in the forest.',
     context: 'Developed for MOVING ASSEMBLY, a four-hour performance with Level Five at KOMPLOT, Brussels, November 2026, in which works move between storage, display and activation.',
-    excerpt: null,
+    excerpt: '/assets/works/tiny-infiltration-loop.mp4',
   },
   {
     id: 'chasse',

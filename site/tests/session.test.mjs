@@ -24,7 +24,7 @@ test('the current layer uses the supplied excerpt and keeps missing media static
   assert.equal(currentState.crops.length, 4);
   assert.equal(works.length, 3);
   assert.equal(works.find((work) => work.id === 'chasse').excerpt, '/assets/works/la-chasse-loop.mp4');
-  assert.equal(works.find((work) => work.id === 'tiny').excerpt, null);
+  assert.equal(works.find((work) => work.id === 'tiny').excerpt, '/assets/works/tiny-infiltration-loop.mp4');
   assert.equal(works.find((work) => work.id === 'reconstruction').excerpt, null);
 });
 
