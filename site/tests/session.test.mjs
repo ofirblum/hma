@@ -49,6 +49,7 @@ test('served masters are unchanged and derivatives retain authored dimensions', 
     const filename = work.excerpt.split('/').pop();
     const original = await readFile(new URL(`../../Assets/works_/${filename}`, import.meta.url));
     const served = await readFile(new URL(`../public${work.excerpt}`, import.meta.url));
+    assert.ok(!original.subarray(0, 64).toString('utf8').startsWith('version https://git-lfs.github.com/spec/v1'), `${work.id}: hydrated LFS video`);
     assert.equal(digest(served), digest(original), `${work.id}: unchanged authored excerpt`);
   }
 });
