@@ -145,12 +145,16 @@ Alpine.data('hmaSurface', () => ({
       video.currentTime = 0;
       video.muted = false;
       try { await video.play(); } catch {
+        if (this.state || video.dataset.work !== this.encounter) return;
         video.muted = true;
-        try { await video.play(); } catch {}
+        try { await video.play(); } catch { return; }
+        if (this.state || video.dataset.work !== this.encounter) video.pause();
+        return;
       }
       if (this.state || video.dataset.work !== this.encounter) video.pause();
     });
   },
+
 }));
 
 Alpine.start();
